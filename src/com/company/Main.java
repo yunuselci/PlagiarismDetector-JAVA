@@ -4,42 +4,13 @@ import java.io.*;
 import java.util.*;
 
 public class Main {
-    //static String databasePath = "C:\\Users\\YUNUS\\IdeaProjects\\Cmp3005\\database";
-    //static String textToCheckPath= "C:\\Users\\YUNUS\\IdeaProjects\\Cmp3005\\control\\text1.txt";
+    final static File databaseFolder = new File("C:\\Users\\YUNUS\\IdeaProjects\\Cmp3005\\database");//Give main_doc.txt path here
+    final static File controlFolder = new File("C:\\Users\\YUNUS\\IdeaProjects\\Cmp3005\\control");//Give controlFolder path here
     static ArrayList<String> databaseSentences = new ArrayList<>();
     static ArrayList<String> controlSentences = new ArrayList<>();
-    static HashMap<Double, String> hash_map = new HashMap<>();
-    final static File databaseFolder = new File("C:\\Users\\YUNUS\\IdeaProjects\\Cmp3005\\database");
-    final static File controlFolder = new File("C:\\Users\\YUNUS\\IdeaProjects\\Cmp3005\\control");
+    static LinkedHashMap<Double, String> hash_map = new LinkedHashMap<>();
     static ArrayList<String> controlFolderAbsolutePaths = new ArrayList<>();
 
-
-    /*
-    static void readFile() throws IOException {
-        String target_dir = databasePath;
-        File dir = new File(target_dir);
-        File[] files = dir.listFiles();
-
-        assert files != null;
-        for (File f : files) {
-            if (f.isFile()) {
-
-                try (BufferedReader inputStream = new BufferedReader(
-                        new FileReader(f))) {
-                    String line;
-
-
-                    while ((line = inputStream.readLine()) != null) {
-                        databaseSentences.add(line);
-                        System.out.println(line);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-*/
 
     static void readTheDatabaseDirectory(final File folder) throws FileNotFoundException {
         for (final File fileEntry : Objects.requireNonNull(folder.listFiles())) {
@@ -62,36 +33,13 @@ public class Main {
             if (fileEntry.isDirectory()) {
                 readTheControlDirectory(fileEntry);
             } else {
-                /*
-                try (Stream<Path> paths = Files.walk(Paths.get("C:\\Users\\YUNUS\\IdeaProjects\\Cmp3005\\control"))) {
-                    paths
-                            .filter(Files::isRegularFile);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }*/
-                //System.out.println(fileEntry.getAbsolutePath());
                 controlFolderAbsolutePaths.add(fileEntry.getAbsolutePath());
             }
         }
     }
 
-/*
-    static void readTheDatabase() throws FileNotFoundException {
 
-
-        Scanner sentence = new Scanner(new File("C:\\Users\\YUNUS\\IdeaProjects\\Cmp3005\\database\\database.txt"));
-
-        sentence.useDelimiter("(?<=[.!?])\\s*");
-        while (sentence.hasNextLine())
-        {
-            databaseSentences.add(sentence.next());
-        }
-        sentence.close();
-    }
-
-*/
-    static void readSentences1(final String directory) throws FileNotFoundException {
+    static void readTheSentences(final String directory) throws FileNotFoundException {
         Scanner sentence = new Scanner(new File(directory));
         sentence.useDelimiter("(?<=[.!?])\\s*");
         while (sentence.hasNextLine())
@@ -111,7 +59,7 @@ public class Main {
     /* // If you haves Apache Common Text, you can use it to calculate the edit distance:
     LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
     return (longerLength - levenshteinDistance.apply(longer, shorter)) / (double) longerLength; */
-        return (longerLength - editDistance(longer, shorter)) / (double) longerLength;
+        return 100*(longerLength - editDistance(longer, shorter)) / (double) longerLength;
 
     }
     // Example implementation of the Levenshtein Edit Distance
@@ -144,55 +92,61 @@ public class Main {
     }
 
     public static void putIntoHashMap(String sentence1, String sentence2) {
-        System.out.printf("%.3f is the similarity between \"%sentence1\" and \"%sentence1\"%n", similarity(sentence1, sentence2), sentence1, sentence2);
         hash_map.put(similarity(sentence1,sentence2),sentence2);
 
     }
 
-    public static void getMostFiveSentences(int counter){
-        /*// Print keys and values
-        double maxScore = 0;
-
-        for (int i = 0; i < 5; i++) {
-            for (Double j : hash_map.keySet()) {
-                if(j>=maxScore){
-                    maxScore = j;
-                }
+    public static void sortTheHashMapByTheKeyAndPrintTheValue(int counter)
+    {
+        ArrayList<Double> sortedKeys =
+                new ArrayList<>(hash_map.keySet());
+        Collections.sort(sortedKeys);
+        Collections.reverse(sortedKeys);
+        double total=0.0;
+        double total2=0.0;
+        for (Double x : sortedKeys){
+            total += x;
+        }
+        total2 = total/ hash_map.size();
+        System.out.println("Similarity Rate For Document:"+counter+" %"+total2);
+        int i=0;
+        for (Double x : sortedKeys){
+            i++;
+            if(i<=5){
+                System.out.println(
+                        "Folder = " + counter +
+                        ", Similarity Score = %" + Math.round(x) +
+                        ", "+i+"." + "Sentence = "+ hash_map.get(x));
             }
-            System.out.println("Most Similar Sentence " +(i+1)+  " in folder:" + counter+" "+ "= " + maxScore + " " + hash_map.get(maxScore));
-            hash_map.remove(maxScore);
-            maxScore=0;
-        }*/
-        
+        }
+
+
+
     }
 
 
-
     public static void main(String[] args) throws IOException {
-        int counter = 0;
+        long startTime = System.currentTimeMillis();
+        int counter = 0; //Bu counter çıktı da düzgün bir görüntü sağlansın diye bulunuyor, olmasa da olur
         readTheDatabaseDirectory(databaseFolder);
-        readTheControlDirectory(controlFolder);/*
-        for (String controlFolderAbsolutePath : controlFolderAbsolutePaths) {
-            readSentences1(controlFolderAbsolutePath);
-            for (int i = 0; i < controlSentences.size(); i++) {
-                putIntoHashMap(databaseSentences.get(i), controlSentences.get(i));
-            }
+        readTheControlDirectory(controlFolder);
+        for (int index = 0; index < controlFolderAbsolutePaths.size(); index++) {
+            readTheSentences(controlFolderAbsolutePaths.get(index));
+            for (int j = 0; j < databaseSentences.size(); j++) {
+                for (int i = 0; i < controlSentences.size(); i++) {
+                    putIntoHashMap(databaseSentences.get(j), controlSentences.get(i));
 
+                }
+            }
             System.out.println(" ");
             ++counter;
-            getMostFiveSentences(counter);
+            sortTheHashMapByTheKeyAndPrintTheValue(counter);
             controlSentences.clear();
             hash_map.clear();
-        }*/
-        readSentences1(controlFolderAbsolutePaths.get(0));
-        for (int j = 0; j < databaseSentences.size(); j++) {
-
-            for (int i = 0; i < controlSentences.size(); i++) {
-                putIntoHashMap(databaseSentences.get(j), controlSentences.get(i));
-
-            }
-
+            controlSentences.clear();
         }
+        long endTime = System.currentTimeMillis();
+        System.out.println("That took " + (endTime - startTime) + " milliseconds");
 
 
     }
