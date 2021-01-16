@@ -49,35 +49,33 @@ public class Main {
         sentence.close();
     }
 
-    public static double similarity(String s1, String s2) {
-        String longer = s1, shorter = s2;
-        if (s1.length() < s2.length()) { // longer should always have greater length
-            longer = s2;
-            shorter = s1;
+    public static double similarity(String string1, String string2) {
+        String longer = string1, shorter = string2;
+        if (string1.length() < string2.length()) { // longer should always have greater length
+            longer = string2;
+            shorter = string1;
         }
         int longerLength = longer.length();
         if (longerLength == 0) {
             return 1.0;
         }
-
         return (100 * (longerLength - editDistance(longer, shorter)) / (double) longerLength);
-
     }
 
-    public static int editDistance(String s1, String s2) { //Levenshtein distance algorithm implementation
-        s1 = s1.toLowerCase();
-        s2 = s2.toLowerCase();
+    public static int editDistance(String string1, String string2) { //Levenshtein distance algorithm implementation
+        string1 = string1.toLowerCase();
+        string2 = string2.toLowerCase();
         //mean of costs "cost to convert one string to another"
-        int[] costs = new int[s2.length() + 1];
-        for (int i = 0; i <= s1.length(); i++) {
+        int[] costs = new int[string2.length() + 1];
+        for (int i = 0; i <= string1.length(); i++) {
             int lastValue = i;
-            for (int j = 0; j <= s2.length(); j++) {
+            for (int j = 0; j <= string2.length(); j++) {
                 if (i == 0) {
                     costs[j] = j;
                 } else {
                     if (j > 0) {
                         int newValue = costs[j - 1];
-                        if (s1.charAt(i - 1) != s2.charAt(j - 1)) {
+                        if (string1.charAt(i - 1) != string2.charAt(j - 1)) {
                             newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
                         }
                         costs[j - 1] = lastValue;
@@ -86,18 +84,17 @@ public class Main {
                 }
             }
             if (i > 0) {
-                costs[s2.length()] = lastValue;
+                costs[string2.length()] = lastValue;
             }
         }
         //We get costs from this implementation and use to calculate similarity between two string
-        return costs[s2.length()];
+        return costs[string2.length()];
     }
 
     public static void putIntoHashMap(String sentence1, String sentence2) {
         //Create <key,value> structure
         //you can run this put method to see which sentences are compared
         hash_map.put((sentence2 + "\tBETWEEN:" + sentence1), similarity(sentence1, sentence2));
-        //hash_map.put(similarity(sentence1,sentence2),sentence2);
 
 
     }
@@ -114,22 +111,25 @@ public class Main {
         }
         printMap(sortedMap);
     }
-
     //method for printing the elements
     public static void printMap(Map<String, Double> map) {
-        double sumOfKeys=0.0, similarityRateOfWholeDocument = 0.0;
+        double sumOfValues=0.0, similarityRateOfWholeDocument;
+        int i = 0; //to control the foreach loop
         for (Map.Entry<String, Double> entry : map.entrySet()) {
-            sumOfKeys += entry.getValue();
+            if(i<controlSentences.size()){
+                i++;
+                sumOfValues += entry.getValue();
+            }
         }
-        similarityRateOfWholeDocument = sumOfKeys / hash_map.keySet().size(); //measure similarity rate of document
+        similarityRateOfWholeDocument = sumOfValues / controlSentences.size(); //measure similarity rate of document
         System.out.println("Similarity Rate For Document:"+" %"+similarityRateOfWholeDocument);
-        int i = 0;
+        int j = 0; //to control the foreach loop
         for (Map.Entry<String, Double> entry : map.entrySet()) {
-            i++;
-            if(i<=5){
+            j++;
+            if(j<=5){
                 System.out.println(
                         "Similarity Score = %" + Math.round(entry.getValue()) +
-                                ", "+i+"." + "Sentence = "+ entry.getKey());;
+                                ", "+j+"." + "Sentence = "+ entry.getKey());;
             }
         }
     }
